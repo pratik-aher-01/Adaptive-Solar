@@ -1,114 +1,38 @@
-import { useMemo, useState } from 'react';
-import {
-  Activity, ArrowDownRight, ArrowUpRight, BatteryCharging, CalendarDays,
-  ChevronDown, CircleHelp, Command, Download, Gauge, LayoutDashboard,
-  Lightbulb, Menu, Settings2, Sun, SunMedium, Target, Wifi, X, Zap
-} from 'lucide-react';
-import {
-  Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis
-} from 'recharts';
+import { useState } from 'react';
+import { Activity, ArrowUpRight, BatteryCharging, CalendarDays, Gauge, LayoutDashboard, Settings2, Sun, SunMedium, Target, Wifi, Zap, Menu, X, Radio, Sparkles } from 'lucide-react';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const dayData = [
-  { time: '06:00', output: 8 }, { time: '07:00', output: 24 },
-  { time: '08:00', output: 51 }, { time: '09:00', output: 78 },
-  { time: '10:00', output: 112 }, { time: '11:00', output: 138 },
-  { time: '12:00', output: 151 }, { time: '13:00', output: 143 },
-  { time: '14:00', output: 126 }, { time: '15:00', output: 98 },
-  { time: '16:00', output: 61 }, { time: '17:00', output: 29 },
-  { time: '18:00', output: 7 }
-];
-const weekData = [
-  { time: 'Mon', output: 720 }, { time: 'Tue', output: 840 },
-  { time: 'Wed', output: 680 }, { time: 'Thu', output: 910 },
-  { time: 'Fri', output: 780 }, { time: 'Sat', output: 960 },
-  { time: 'Sun', output: 865 }
-];
-
-function MetricCard({ label, value, unit, icon: Icon, note, trend, trendUp = true }) {
-  return <article className="metric-card">
-    <div className="metric-top"><span>{label}</span><span className="metric-icon"><Icon size={17} strokeWidth={1.8}/></span></div>
-    <div className="metric-value">{value}<span>{unit}</span></div>
-    <div className="metric-bottom"><span className={trend ? (trendUp ? 'trend positive' : 'trend negative') : 'muted'}>{trend && (trendUp ? <ArrowUpRight size={14}/> : <ArrowDownRight size={14}/>)}{trend}</span><span className="muted">{note}</span></div>
-  </article>;
-}
-
-function Sidebar({ active, setActive, open, close }) {
-  const links = [
-    { label: 'Overview', icon: LayoutDashboard },
-    { label: 'Energy analytics', icon: Activity },
-    { label: 'Solar tracking', icon: SunMedium },
-    { label: 'Device settings', icon: Settings2 }
-  ];
-  return <>
-    {open && <button className="scrim" aria-label="Close menu" onClick={close}/>}
-    <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
-      <div className="brand"><span className="brand-mark"><Sun size={19}/></span><span>adaptive<span className="brand-light">solar</span></span><button className="icon-button mobile-close" onClick={close} aria-label="Close navigation"><X size={18}/></button></div>
-      <div className="workspace-label">WORKSPACE</div>
-      <button className="workspace-switch"><span className="workspace-avatar">S</span><span className="workspace-text"><strong>Solar Lab</strong><small>Personal workspace</small></span><ChevronDown size={15}/></button>
-      <div className="nav-label">MONITORING</div>
-      <nav className="nav-list">{links.map(({label, icon: Icon}) => <button key={label} className={`nav-item ${active === label ? 'active' : ''}`} onClick={() => {setActive(label); close();}}><Icon size={17} strokeWidth={1.8}/><span>{label}</span>{label === 'Solar tracking' && <span className="nav-live-dot"/>}</button>)}</nav>
-      <div className="sidebar-bottom">
-        <div className="device-mini"><div className="device-mini-head"><span className="device-led"/> <span>ESP32 controller</span></div><strong>Waiting for device</strong><small>Hardware not connected</small></div>
-        <button className="nav-item help-link" onClick={() => setActive('Help & documentation')}><CircleHelp size={17}/><span>Help & documentation</span></button>
-        <div className="profile"><div className="profile-avatar">PA</div><div className="profile-copy"><strong>Project workspace</strong><small>Prototype · v0.1</small></div><Command size={16} className="profile-more"/></div>
-      </div>
-    </aside>
-  </>;
-}
-
-export default function App() {
-  const [active, setActive] = useState('Overview');
-  const [period, setPeriod] = useState('Today');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [tracking, setTracking] = useState(false);
-  const [showNotice, setShowNotice] = useState(true);
-  const chartData = useMemo(() => period === '7 days' ? weekData : dayData, [period]);
-  const chartUnit = period === '7 days' ? 'Wh' : 'mW';
-  const pageTitle = active === 'Overview' ? 'Energy overview' : active;
-  const isOverview = active === 'Overview';
-
-  return <div className="app-shell">
-    <Sidebar active={active} setActive={setActive} open={menuOpen} close={() => setMenuOpen(false)}/>
-    <main className="main-area">
-      <header className="topbar">
-        <div className="topbar-left"><button className="icon-button menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Open navigation"><Menu size={20}/></button><span className="breadcrumb">Solar Lab</span><span className="breadcrumb-separator">/</span><span className="breadcrumb-current">{pageTitle}</span></div>
-        <div className="topbar-right"><span className="connection-pill"><span className="status-dot"/>Demo mode</span><button className="icon-button" aria-label="Settings" onClick={() => setActive('Device settings')}><Settings2 size={18}/></button><div className="top-avatar">PA</div></div>
-      </header>
-      <div className="page-content">
-        <section className="page-heading">
-          <div><div className="eyebrow">SOLAR MONITORING <span>·</span> PROTOTYPE</div><h1>{pageTitle}</h1><p className="page-subtitle">{isOverview ? 'A clear view of your panel performance and tracking system.' : `Manage and review your ${active.toLowerCase()} workspace.`}</p></div>
-          <div className="heading-actions"><button className="button button-secondary" onClick={() => window.print()}><Download size={15}/> Export report</button><button className="button button-primary" onClick={() => setActive('Device settings')}><Settings2 size={15}/> Configure device</button></div>
-        </section>
-        {showNotice && <div className="demo-notice"><span className="notice-icon"><Lightbulb size={16}/></span><div><strong>Preview data is being shown</strong><p>These sample readings are for layout preview only. Connect the ESP32 and API to display measured values.</p></div><button className="icon-button notice-close" onClick={() => setShowNotice(false)} aria-label="Dismiss notice"><X size={16}/></button></div>}
-        {isOverview ? <>
-          <section className="metrics-grid">
-            <MetricCard label="Energy generated" value="0.84" unit=" Wh" icon={Zap} trend="12.8%" note="vs. previous day" />
-            <MetricCard label="Current power" value="142" unit=" mW" icon={Activity} trend="Live preview" note="sample reading" />
-            <MetricCard label="Panel voltage" value="5.18" unit=" V" icon={Gauge} note="sample reading" />
-            <MetricCard label="Panel current" value="27.4" unit=" mA" icon={BatteryCharging} note="sample reading" />
-          </section>
-          <section className="content-grid">
-            <article className="panel chart-panel">
-              <div className="panel-header"><div><h2>Energy production</h2><p>Output across the selected period</p></div><div className="segmented-control"><button className={period === 'Today' ? 'selected' : ''} onClick={() => setPeriod('Today')}>Today</button><button className={period === '7 days' ? 'selected' : ''} onClick={() => setPeriod('7 days')}>7 days</button></div></div>
-              <div className="chart-summary"><strong>{period === 'Today' ? '0.84 Wh' : '5.76 Wh'}</strong><span><span className="trend positive"><ArrowUpRight size={14}/> 8.4%</span> <span className="muted">compared with previous period</span></span></div>
-              <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><AreaChart data={chartData} margin={{ top: 8, right: 6, left: -18, bottom: 0 }}><defs><linearGradient id="energyFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#c5d8a4" stopOpacity={0.52}/><stop offset="95%" stopColor="#c5d8a4" stopOpacity={0.03}/></linearGradient></defs><CartesianGrid stroke="#e9e9e4" vertical={false} strokeDasharray="3 4"/><XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#92938c', fontSize: 11 }} dy={10}/><YAxis axisLine={false} tickLine={false} tick={{ fill: '#92938c', fontSize: 11 }} tickFormatter={v => v} /><Tooltip contentStyle={{border:'1px solid #e8e8e1',borderRadius:8,fontSize:12,boxShadow:'0 4px 16px #0000000a'}} formatter={(v) => [`${v} ${chartUnit}`, 'Output']}/><Area type="monotone" dataKey="output" stroke="#718a4d" strokeWidth={2} fill="url(#energyFill)" activeDot={{r:4,stroke:'#718a4d',strokeWidth:2,fill:'#fff'}}/></AreaChart></ResponsiveContainer></div>
-              <div className="chart-footer"><span><span className="legend-dot"/> {period === 'Today' ? 'Power output' : 'Daily energy'}</span><span><CalendarDays size={14}/> {period === 'Today' ? 'Today, sample timeline' : 'Last 7 days, sample data'}</span></div>
-            </article>
-            <article className="panel tracking-panel">
-              <div className="panel-header"><div><h2>Solar tracking</h2><p>Dual-axis positioning</p></div><span className={`small-status ${tracking ? 'status-on' : ''}`}><span/> {tracking ? 'Enabled' : 'Standby'}</span></div>
-              <div className="tracking-visual"><div className="sun-path"><span className="sun-position"><Sun size={28}/></span><span className="path-line"/></div><div className="panel-illustration"><div className="solar-grid"><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/><span/></div></div><div className="mount-line"/></div>
-              <div className="angle-grid"><div><span>Horizontal angle</span><strong>042°</strong></div><div><span>Vertical angle</span><strong>018°</strong></div></div>
-              <div className="tracking-control"><div><strong>Automatic tracking</strong><small>{tracking ? 'Control preview enabled' : 'Awaiting controller connection'}</small></div><button className={`toggle ${tracking ? 'toggle-on' : ''}`} onClick={() => setTracking(!tracking)} aria-label="Toggle automatic tracking" aria-pressed={tracking}><span/></button></div>
-              <p className="control-footnote">Control is simulated until the ESP32 is connected.</p>
-            </article>
-          </section>
-          <section className="bottom-grid">
-            <article className="panel sensor-panel"><div className="panel-header"><div><h2>Light sensors</h2><p>Relative LDR readings</p></div><span className="text-tag">4 sensors</span></div><div className="sensor-list">{[['Top left','LDR 01',68],['Top right','LDR 02',74],['Bottom left','LDR 03',51],['Bottom right','LDR 04',59]].map(([label,id,val])=><div className="sensor-row" key={id}><div className="sensor-name"><span className="sensor-symbol"><SunMedium size={15}/></span><div><strong>{label}</strong><small>{id}</small></div></div><div className="sensor-bar"><span style={{width:val+'%'}}/></div><strong className="sensor-value">{val}<small>%</small></strong></div>)}</div><div className="panel-footnote"><span className="status-dot"/> Sample values · not connected to hardware</div></article>
-            <article className="panel device-panel"><div className="panel-header"><div><h2>Device status</h2><p>Controller health and connectivity</p></div><button className="icon-button" aria-label="Device settings" onClick={() => setActive('Device settings')}><Settings2 size={17}/></button></div><div className="device-state"><div className="device-icon"><Wifi size={21}/></div><div><strong>ESP32 controller</strong><p>Not connected</p></div><span className="state-badge">Offline</span></div><div className="device-details"><div><span>Connection</span><strong>Wi-Fi · unavailable</strong></div><div><span>Last received</span><strong>—</strong></div><div><span>Firmware</span><strong>Not detected</strong></div><div><span>API endpoint</span><strong>Not configured</strong></div></div><button className="button button-secondary full-button" onClick={() => setActive('Device settings')}>Set up connection <span>→</span></button></article>
-          </section>
-        </> : <section className="panel secondary-page"><div className="secondary-icon">{active === 'Solar tracking' ? <Target size={23}/> : active === 'Energy analytics' ? <Activity size={23}/> : <Settings2 size={23}/>}</div><h2>{active}</h2><p>This section is part of the dashboard shell. The hardware integration and detailed controls will be implemented after the overview and API contract are established.</p><button className="button button-primary" onClick={() => setActive('Overview')}>Back to overview</button></section>}
-        <footer className="page-footer"><span>Adaptive Solar <span className="footer-separator">/</span> Prototype dashboard</span><span>Hardware connection pending <span className="footer-dot"/></span></footer>
-      </div>
-    </main>
-  </div>;
+const points=[{time:'06:00',output:8},{time:'07:00',output:24},{time:'08:00',output:51},{time:'09:00',output:78},{time:'10:00',output:112},{time:'11:00',output:138},{time:'12:00',output:151},{time:'13:00',output:143},{time:'14:00',output:126},{time:'15:00',output:98},{time:'16:00',output:61},{time:'17:00',output:29},{time:'18:00',output:7}];
+const week=[{time:'Mon',output:720},{time:'Tue',output:840},{time:'Wed',output:680},{time:'Thu',output:910},{time:'Fri',output:780},{time:'Sat',output:960},{time:'Sun',output:865}];
+const sensorData=[['North-west','LDR 01',68],['North-east','LDR 02',74],['South-west','LDR 03',51],['South-east','LDR 04',59]];
+function SolarScene({tracking=false}){return <div className="solar-scene"><div className="scene-orbit orbit-one"/><div className="scene-orbit orbit-two"/><div className="scene-sun"><Sun size={30}/></div><div className="scene-glow"/><div className={'scene-panel-wrap '+(tracking?'scene-tracking':'')}><div className="scene-panel">{Array.from({length:12},(_,i)=><span key={i}/>)}</div><div className="scene-pole"/><div className="scene-base"/><div className="scene-pivot"/></div><div className="scene-label label-top"><i/> SOLAR ARRAY <b>01</b></div><div className="scene-label label-bottom">AZIMUTH <b>{tracking?'AUTO · 046°':'046°'}</b></div><div className="scene-coordinates">18° 33' N / 73° 59' E</div></div>}
+function Metric({label,value,unit,Icon,note}){return <article className="metric-card"><div className="metric-top">{label}<span className="metric-icon"><Icon size={17}/></span></div><div className="metric-value">{value}<small>{unit}</small></div><div className="metric-note"><span className="metric-live-dot"/>{note}</div></article>}
+export default function App(){
+ const [period,setPeriod]=useState('Today');const [tracking,setTracking]=useState(false);const [menuOpen,setMenuOpen]=useState(false);const [notice,setNotice]=useState(true);const [active,setActive]=useState('Overview');
+ const data=period==='Today'?points:week;
+ return <div className="app-shell">
+  {menuOpen&&<button className="scrim" onClick={()=>setMenuOpen(false)} aria-label="Close menu"/>}
+  <aside className={'sidebar '+(menuOpen?'sidebar-open':'')}>
+   <div className="brand"><span className="brand-mark"><Sun size={20}/></span><span>solara<span className="brand-light">.lab</span></span><button className="icon-button mobile-close" onClick={()=>setMenuOpen(false)}><X size={18}/></button></div>
+   <div className="workspace-label">YOUR WORKSPACE</div><div className="workspace-switch"><span className="workspace-avatar"><SunMedium size={17}/></span><span><b>Solar Lab</b><small>Prototype workspace</small></span><span className="switch-chevron">⌄</span></div>
+   <div className="nav-label">CONTROL CENTER</div>
+   {[['Overview',LayoutDashboard],['Energy analytics',Activity],['Solar tracking',Target],['Device settings',Settings2]].map(([label,Icon])=><button key={label} className={'nav-item '+(active===label?'active':'')} onClick={()=>{setActive(label);setMenuOpen(false)}}><Icon size={17}/>{label}{label==='Solar tracking'&&<i className="nav-live-dot"/>}</button>)}
+   <div className="sidebar-bottom"><div className="sidebar-tip"><span className="tip-icon"><Sparkles size={15}/></span><b>Make every ray count.</b><p>Track the light. Optimize the angle. Understand your energy.</p></div><div className="device-mini"><span className="mini-label"><i/> ESP32 CONTROLLER</span><b>Waiting for connection</b><small>Hardware setup pending</small></div><div className="profile"><span className="profile-avatar">SL</span><span><b>Solar Lab</b><small>Adaptive solar prototype</small></span></div></div>
+  </aside>
+  <main className="main-area"><header className="topbar"><div className="topbar-left"><button className="icon-button menu-trigger" onClick={()=>setMenuOpen(true)}><Menu size={20}/></button><span>Solar Lab</span><i>/</i><b>{active}</b></div><div className="topbar-right"><span className="connection-pill"><i/> Simulation mode</span><button className="icon-button" onClick={()=>setActive('Device settings')}><Settings2 size={18}/></button><span className="top-avatar">SL</span></div></header>
+   <div className="page-content">
+    {active==='Overview'?<>
+     <section className="hero"><div className="hero-copy"><div className="hero-kicker"><i/> ADAPTIVE SOLAR TRACKING <span/></div><h1>Follow the sun.<br/><em>Find your power.</em></h1><p>Your solar system, in a new light. Explore panel orientation, monitor energy output, and see every signal in one place.</p><div className="hero-actions"><button className="hero-button" onClick={()=>setActive('Solar tracking')}><Target size={16}/> Explore tracking <ArrowUpRight size={15}/></button><button className="hero-link" onClick={()=>setActive('Energy analytics')}>View energy insights ↗</button></div><div className="hero-proof"><span>✳</span> Designed for a smarter solar future</div></div><SolarScene tracking={tracking}/><div className="hero-index">01 <span>/</span> 04</div></section>
+     {notice&&<div className="demo-notice"><span className="notice-icon"><Sparkles size={16}/></span><div><b>Prototype preview</b><p>These are illustrative sample values. Connect the ESP32 and API to display measured readings.</p></div><button className="icon-button" onClick={()=>setNotice(false)} aria-label="Dismiss notice"><X size={16}/></button></div>}
+     <section className="section-heading"><div><span className="section-eyebrow">AT A GLANCE</span><h2>Today's performance <span>✳</span></h2></div><div className="date-chip"><CalendarDays size={14}/> Today · Demo data</div></section>
+     <section className="metrics-grid"><Metric label="Energy generated" value="0.84" unit="Wh" Icon={Zap} note="12.8% vs previous day"/><Metric label="Current power" value="142" unit="mW" Icon={Activity} note="Sample reading"/><Metric label="Panel voltage" value="5.18" unit="V" Icon={Gauge} note="Sample reading"/><Metric label="Panel current" value="27.4" unit="mA" Icon={BatteryCharging} note="Sample reading"/></section>
+     <section className="content-grid"><article className="panel chart-panel"><div className="panel-header"><div><span className="panel-eyebrow">ENERGY INTELLIGENCE</span><h2>Power through the day</h2><p>Understand when your panel produces the most energy.</p></div><div className="segmented-control"><button className={period==='Today'?'selected':''} onClick={()=>setPeriod('Today')}>Today</button><button className={period==='7 days'?'selected':''} onClick={()=>setPeriod('7 days')}>7 days</button></div></div><div className="chart-summary"><div><small>TOTAL OUTPUT</small><b>{period==='Today'?'0.84':'5.76'} <span>Wh</span></b></div><span className="chart-growth"><ArrowUpRight size={15}/> 8.4% <small>vs previous period</small></span></div><div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data} margin={{top:12,right:8,left:-18,bottom:0}}><defs><linearGradient id="energyFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#b9d66e" stopOpacity={.4}/><stop offset="95%" stopColor="#b9d66e" stopOpacity={.02}/></linearGradient></defs><CartesianGrid stroke="#e9ece3" vertical={false} strokeDasharray="3 5"/><XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fill:'#92978a',fontSize:11}} dy={10}/><YAxis axisLine={false} tickLine={false} tick={{fill:'#92978a',fontSize:11}}/><Tooltip contentStyle={{border:'1px solid #e3e8da',borderRadius:12,fontSize:12}} formatter={v=>[v+(period==='Today'?' mW':' Wh'),'Output']}/><Area type="monotone" dataKey="output" stroke="#789747" strokeWidth={2.5} fill="url(#energyFill)" activeDot={{r:5,stroke:'#789747',strokeWidth:2,fill:'#fff'}} animationDuration={900}/></AreaChart></ResponsiveContainer></div><div className="chart-footer"><span><i/> Power output</span><span>● Sample timeline · not live telemetry</span></div></article>
+      <article className="panel tracking-panel"><div className="panel-header"><div><span className="panel-eyebrow">ORIENTATION CONTROL</span><h2>Solar tracking</h2><p>Dual-axis positioning system</p></div><span className={'small-status '+(tracking?'status-on':'')}><i/> {tracking?'Preview active':'Standby'}</span></div><div className="tracking-visual"><SolarScene tracking={tracking}/></div><div className="angle-grid"><div><span>Horizontal angle</span><b>{tracking?'046°':'042°'} <small>AZ</small></b></div><div><span>Vertical angle</span><b>{tracking?'021°':'018°'} <small>EL</small></b></div></div><div className="tracking-control"><div><b>Automatic tracking</b><small>{tracking?'Visual simulation is active':'Awaiting controller connection'}</small></div><button className={'toggle '+(tracking?'toggle-on':'')} onClick={()=>setTracking(!tracking)} aria-label="Toggle automatic tracking" aria-pressed={tracking}><span/></button></div><p className="control-footnote">Demo control only — no hardware commands are sent.</p></article></section>
+     <section className="bottom-grid"><article className="panel"><div className="panel-header"><div><span className="panel-eyebrow">LIGHT DISTRIBUTION</span><h2>Sensor balance</h2><p>Compare light intensity across four LDRs.</p></div><span className="text-tag">4 SENSORS</span></div><div className="sensor-list">{sensorData.map(([label,id,value])=><div className="sensor-row" key={id}><div className="sensor-name"><span><SunMedium size={15}/></span><div><b>{label}</b><small>{id}</small></div></div><div className="sensor-bar"><i style={{width:value+'%'}}/></div><b className="sensor-value">{value}<small>%</small></b></div>)}</div><div className="panel-footnote"><i/> Sample values · hardware not connected</div></article>
+      <article className="panel device-panel"><div className="panel-header"><div><span className="panel-eyebrow">SYSTEM HEALTH</span><h2>Controller status</h2><p>Connectivity and telemetry</p></div><span className="device-orb"><Radio size={17}/></span></div><div className="device-state"><span className="device-icon"><Wifi size={21}/></span><div><b>ESP32 controller</b><p>Ready for integration</p></div><span className="state-badge">Offline</span></div><div className="device-details"><div><small>Connection</small><b>Wi-Fi · unavailable</b></div><div><small>Last received</small><b>Not yet received</b></div><div><small>Firmware</small><b>Not detected</b></div><div><small>API endpoint</small><b>Not configured</b></div></div><button className="button-secondary full-button" onClick={()=>setActive('Device settings')}>Configure controller <ArrowUpRight size={15}/></button></article></section>
+    </>:<section className="panel secondary-page"><span className="section-eyebrow">SOLARA LAB / WORKSPACE</span><h2>{active}</h2><p>This workspace view is being prepared. The overview uses illustrative sample data; live telemetry and hardware controls will be added with the API integration.</p><button className="hero-button" onClick={()=>setActive('Overview')}>Back to overview <ArrowUpRight size={15}/></button></section>}
+    <footer className="page-footer"><span><b>☼ solara.lab</b> / Adaptive solar tracking prototype</span><span>SIMULATION MODE <i/></span></footer>
+   </div>
+  </main>
+ </div>;
 }
